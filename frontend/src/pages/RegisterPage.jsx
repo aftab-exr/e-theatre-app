@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react'; // 1. Import useContext
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom'; // Import Link
+import { useNavigate, Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext'; // 2. Import AuthContext
 
 const RegisterPage = () => {
-    // We use a single state object to hold all form data
+    // State for form data
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -14,6 +15,9 @@ const RegisterPage = () => {
     // State for loading and any error messages
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+
+    // 3. Get the 'login' function from our context
+    const { login } = useContext(AuthContext);
 
     // This hook allows us to redirect the user
     const navigate = useNavigate();
@@ -38,9 +42,9 @@ const RegisterPage = () => {
             return; // Stop the function
         }
 
+
         try {
-            // 2. Send the data to the backend
-            // We only send the fields the API expects
+            // 2. Send the data to the backend to register
             await axios.post('http://localhost:8000/auth/register/', {
                 username: formData.username,
                 email: formData.email,
@@ -48,23 +52,30 @@ const RegisterPage = () => {
                 password2: formData.password2
             });
 
-            // 3. Handle Success
+            // 4. --- NEW: Auto-login ---
+            // Registration was successful, so now log the user in
+            const loginSuccess = await login(formData.username, formData.password);
+
             setLoading(false);
-            // Redirect to the login page
-            navigate('/login');
+
+            if (loginSuccess) {
+                // 5. On success, send them to the HOME page (not login)
+                navigate('/');
+            } else {
+                // This should rarely happen, but just in case
+                setError("Registration successful, but login failed. Please go to login page.");
+            }
 
         } catch (err) {
             // 4. Handle Errors
             setLoading(false);
             if (err.response && err.response.data) {
-                // If the backend sends validation errors
-                // (e.g., "email already exists")
-                // We'll format and display them.
+                // This catches backend validation errors (e.g., "email already exists")
                 const errorData = err.response.data;
                 const errorMsg = Object.values(errorData).join(' ');
                 setError(errorMsg);
             } else {
-                // Generic error
+                // Generic error (like the CORS one we fixed)
                 setError("Registration failed. Please try again.");
             }
         }
@@ -74,6 +85,8 @@ const RegisterPage = () => {
         <div style={{ maxWidth: '400px', margin: '50px auto' }}>
             <h2>Register</h2>
             <form onSubmit={handleSubmit}>
+                {/* ... all your form inputs (username, email, etc.) ... */}
+                {/* NO CHANGES are needed in the JSX <form> part */}
                 <div style={{ marginBottom: '10px' }}>
                     <label>Username</label>
                     <input

@@ -2,22 +2,33 @@ import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
+// 1. Import our new components
+import CreateRoomForm from '../components/CreateRoomForm';
+import RoomList from '../components/RoomList';
+
 const HomePage = () => {
     const { user, logout } = useContext(AuthContext);
 
     return (
-        <div style={{ padding: '50px' }}>
+        <div style={{ maxWidth: '800px', margin: '50px auto' }}>
             <h1>Welcome to the E-Theatre!</h1>
 
             {user ? (
-                // If user is logged in
+                // --- LOGGED-IN VIEW ---
                 <div>
-                    <p>Hello, {user.username}!</p>
-                    {/* We'll add a "Create Room" button here later */}
-                    <button onClick={logout}>Logout</button>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h3>Hello, {user.username}!</h3>
+                        <button onClick={logout}>Logout</button>
+                    </div>
+
+                    <hr style={{ margin: '20px 0' }} />
+
+                    {/* 2. Add our new components */}
+                    <CreateRoomForm />
+                    <RoomList />
                 </div>
             ) : (
-                // If user is logged out
+                // --- LOGGED-OUT VIEW ---
                 <div>
                     <p>Please log in or register to join a theatre.</p>
                     <Link to="/login" style={{ marginRight: '10px' }}>
